@@ -1,0 +1,259 @@
+﻿DOC 02
+C# Class Design &
+Data Models
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+VR Molecular Chemistry Lab â€” Unity 6 / XR Interaction Toolkit / Meta Quest
+DOC-02 of 05
+Overview
+This document details every C# class, ScriptableObject, and data struct used in the project. For each class you will find: purpose, public API (properties + methods), key implementation notes, and the complete field definition table. Follow the architecture rules in DOC-01; never add MonoBehaviour logic to ScriptableObjects or FindObjectOfType calls to runtime code.
+1. MoleculeData  (Data Struct)
+A plain C# struct â€” no MonoBehaviour, no inheritance. Defines a single valid molecule. Stored as a List<MoleculeData> inside MoleculeDatabase.
+1.1  Fields
+Field
+Type
+Description
+moleculeName
+string
+Display name e.g. "Water", "Methane"
+formula
+string
+Chemical formula string e.g. "H2O" (used in UI labels)
+hydrogenCount
+int
+Number of H atoms required (0â€“5)
+oxygenCount
+int
+Number of O atoms required (0â€“2)
+carbonCount
+int
+Number of C atoms required (0â€“2)
+nitrogenCount
+int
+Number of N atoms required (0â€“2)
+bondType
+BondType (enum)
+Single | Double | Triple â€” primary bond type for labelling
+moleculePrefab
+GameObject
+Reference to the 3D molecule prefab to instantiate on bond success
+discoveryIcon
+Sprite
+Thumbnail icon shown in the Library Panel after first discovery
+description
+string
+One-sentence description shown in the Inspector Panel
+1.2  BondType Enum
+public enum BondType
+{
+    Single,    // H2, NH3, CH4, H2O, N2H4, Methanol, Urea, Glycine
+    Double,    // O2, CO2, Formaldehyde, Diazene
+    Triple     // N2, HCN, CO, Cyanogen, Carbon Monoxide
+}
+1.3  AtomComposition Helper Method
+Add this method to MoleculeData so BondManager can compare incoming atom counts without string parsing:
+public bool Matches(int h, int o, int c, int n)
+{
+    return hydrogenCount == h
+        && oxygenCount  == o
+        && carbonCount  == c
+        && nitrogenCount == n;
+}
+2. AtomToken  (ScriptableObject)
+A ScriptableObject asset that defines the visual and logical identity of one element. One asset per element (H, O, C, N). Referenced by AtomController at spawn time.
+Field
+Type
+Description
+elementSymbol
+string
+"H" | "O" | "C" | "N" â€” drives bond-count logic
+elementName
+string
+"Hydrogen" | "Oxygen" | "Carbon" | "Nitrogen" â€” shown in Inspector
+atomColor
+Color
+CPK convention: H=white, O=red, C=dark-grey, N=blue
+atomMaterial
+Material
+URP Lit material with atomColor baked in; used on the token sphere
+atomMesh
+Mesh
+Low-poly sphere (32 tri faces). Shared across all instances of this element.
+labelText
+string
+Same as elementSymbol; separated so custom labels are possible in future
+3. MoleculeDatabase  (ScriptableObject)
+The single source of truth for all valid molecule definitions. Exists as one asset in the project: Assets/_Project/ScriptableObjects/MoleculeDatabase.asset. BondManager holds a serialised reference to it â€” no Resources.Load, no hardcoded data.
+3.1  Fields
+Field
+Type
+Description
+molecules
+List<MoleculeData>
+All 18 molecule definitions; populated in the Unity Inspector
+3.2  Public Methods
+// Returns the matching MoleculeData or null if combo is invalid
+public MoleculeData? TryGetMolecule(int h, int o, int c, int n)
+{
+    foreach (var mol in molecules)
+        if (mol.Matches(h, o, c, n)) return mol;
+    return null;
+}
+// Convenience: returns true and sets result via out param
+public bool TryFind(int h, int o, int c, int n, out MoleculeData result)
+{
+    var found = TryGetMolecule(h, o, c, n);
+    result = found ?? default;
+    return found.HasValue;
+}
+4. AtomController  (MonoBehaviour)
+Attached to every atom token prefab. Manages the complete lifecycle of one atom: grab, release, proximity check, and bond-request dispatch. Communicates upward to BondManager only; never directly modifies other AtomControllers.
+4.1  Serialised Fields (Inspector)
+Field
+Type
+Purpose
+atomData
+AtomToken SO
+The ScriptableObject that defines this element
+proximityRadius
+float (0.12f)
+Sphere-cast radius in metres; atoms within this range trigger bond check
+highlightMaterial
+Material
+Swapped in on grab; restores atomData.atomMaterial on release
+bondManager
+BondManager
+Direct inspector reference; avoids runtime FindObjectOfType
+snapZoneIndicator
+GameObject
+Ring gizmo shown beneath atom when another atom is within bond range
+4.2  Private State
+Variable
+Type
+Description
+_isGrabbed
+bool
+True while the XR controller holds this atom
+_bondedMolecule
+GameObject
+Reference to the spawned molecule; non-null means this atom is consumed
+_renderer
+MeshRenderer
+Cached on Awake; used for material swaps
+_nearbyAtoms
+List<AtomController>
+Updated every FixedUpdate while grabbed; cleared on release
+4.3  Public API
+Method / Property
+Behaviour
+string ElementSymbol { get; }
+Returns atomData.elementSymbol; used by BondManager for counting
+bool IsGrabbed { get; }
+Returns _isGrabbed; BondManager reads this to filter candidate atoms
+bool IsConsumed { get; }
+Returns _bondedMolecule != null; prevents re-bonding
+void OnGrabbed()
+Called by XRGrabInteractable.selectEntered event; swaps material, enables proximity scan
+void OnReleased()
+Called by XRGrabInteractable.selectExited; restores material, clears nearbyAtoms
+void ConsumeIntoMolecule(GameObject mol)
+Hides atom renderer, stores mol reference, disables collider; called by BondManager
+void ResetAtom()
+Reverses ConsumeIntoMolecule; re-enables renderer, nulls _bondedMolecule, re-positions at origin
+4.4  Proximity Scan (FixedUpdate)
+void FixedUpdate()
+{
+    if (!_isGrabbed) return;
+    _nearbyAtoms.Clear();
+    var hits = Physics.OverlapSphere(transform.position, proximityRadius, atomLayer);
+    foreach (var col in hits)
+    {
+        var other = col.GetComponent<AtomController>();
+        if (other != null && other != this && !other.IsConsumed)
+            _nearbyAtoms.Add(other);
+    }
+    snapZoneIndicator.SetActive(_nearbyAtoms.Count > 0);
+    if (_nearbyAtoms.Count > 0)
+        bondManager.OnAtomProximity(this, _nearbyAtoms);
+}
+5. BondManager  (Singleton MonoBehaviour)
+The central coordinator. Receives proximity events, counts atom types, validates against MoleculeDatabase, spawns/destroys molecule prefabs, and fires C# events consumed by UIManager and AudioManager.
+5.1  Serialised Fields
+Field
+Type
+Purpose
+database
+MoleculeDatabase
+Inspector reference to the single DB ScriptableObject asset
+moleculeSpawnPoint
+Transform
+World position where the molecule prefab appears on bond success
+bondCooldown
+float (0.5f)
+Seconds to ignore further proximity events after a bond attempt (prevents double-trigger)
+5.2  C# Events (Subscribed by UIManager & AudioManager)
+public event Action<MoleculeData> OnMoleculeFormed;     // bond success
+public event Action              OnBondFailed;           // invalid combo
+public event Action<MoleculeData> OnMoleculeReset;      // molecule broken apart
+5.3  Core Validation Flow
+public void OnAtomProximity(AtomController trigger,
+                            List<AtomController> nearby)
+{
+    if (Time.time < _nextBondTime) return;
+    // Collect all candidates: trigger + nearby (exclude consumed)
+    var candidates = new List<AtomController> { trigger };
+    candidates.AddRange(nearby.Where(a => !a.IsConsumed));
+    // Count by element
+    int h = candidates.Count(a => a.ElementSymbol == "H");
+    int o = candidates.Count(a => a.ElementSymbol == "O");
+    int c = candidates.Count(a => a.ElementSymbol == "C");
+    int n = candidates.Count(a => a.ElementSymbol == "N");
+    if (database.TryFind(h, o, c, n, out var molData))
+    {
+        FormMolecule(molData, candidates);
+    }
+    else
+    {
+        OnBondFailed?.Invoke();
+    }
+    _nextBondTime = Time.time + bondCooldown;
+}
+void FormMolecule(MoleculeData data, List<AtomController> atoms)
+{
+    var mol = Instantiate(data.moleculePrefab, moleculeSpawnPoint.position,
+                          Quaternion.identity);
+    foreach (var atom in atoms)
+        atom.ConsumeIntoMolecule(mol);
+    OnMoleculeFormed?.Invoke(data);
+}
+6. UIManager  (MonoBehaviour)
+Manages all three world-space UI panels. Subscribes to BondManager events in Start(). Never polls â€” purely event-driven.
+Method
+Triggered By / Behaviour
+OnMoleculeFormed(MoleculeData)
+BondManager.OnMoleculeFormed event â€” adds entry to Library Panel, pulses panel with DOTween
+ShowInspector(MoleculeData)
+Ray-cast select on a formed molecule â€” positions Inspector Panel, populates name/formula/bonds
+HideInspector()
+Ray-cast deselect or Reset â€” hides Inspector Panel
+RefreshLibrary()
+Called after reset â€” rebuilds library list from discovered set
+7. AudioManager  (Singleton MonoBehaviour)
+Wraps three AudioSource components. Subscribes to BondManager events in Start().
+Field / Method
+Type
+Description
+bondSuccessClip
+AudioClip
+Upward chime; played via PlayOneShot on OnMoleculeFormed
+bondFailClip
+AudioClip
+Short buzz; played via PlayOneShot on OnBondFailed
+ambientClip
+AudioClip
+Looping lab ambience; starts in Awake, Volume = 0.2f
+PlayBondSuccess()
+void
+PlayOneShot(bondSuccessClip) + haptic pulse via XRBaseController
+PlayBondFail()
+void
+PlayOneShot(bondFailClip) + short vibration

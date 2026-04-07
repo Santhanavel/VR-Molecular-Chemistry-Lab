@@ -1,0 +1,19 @@
+DOC 06
+Implementation Updates Log
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+VR Molecular Chemistry Lab â€” Unity 6 / XR Interaction Toolkit / Meta Quest
+
+Overview
+This document outlines modifications made to the original design (DOC-01 to DOC-05) during implementation to resolve structural issues and improve project safety.
+
+1. Folder Structure Deviation
+Issue (DOC-01): The original documentation specified creating an `Assets/_Project` folder. However, the existing Unity workspace was initialised with an `Assets/VR-Molecular-Chemistry-Lab` directory.
+Resolution: All scripts (Core, UI, Data) were placed inside `Assets/VR-Molecular-Chemistry-Lab/Scripts/` instead to match the actual Git environment.
+
+2. DOTween Missing Substituted with Coroutines
+Issue (DOC-04): The UIManager and UI elements rely heavily on `DOTween` (e.g., `DOScale`, `DOFade`), which was listed as an optional dependency in DOC-01 but treated as mandatory in DOC-04. Since DOTween is prone to missing-package compile errors on fresh clones, this leads to immediate compilation failures.
+Resolution: The DOTween calls in `UIManager.cs` were replaced with native Unity `Coroutines` (e.g., `ScalePunchAnim`, `FadeCanvasGroup`). This guarantees the codebase compiles natively without external Asset Store packages out of the box while maintaining identical visual UX.
+
+3. XR Interaction Toolkit 3.x Namespaces
+Issue (DOC-02, DOC-03): Direct class references to `XRGrabInteractable` mapping were assumed to be in the base namespace, but XRIT 3.x often pushes these into sub-namespaces (e.g., `UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable`). Event payload types (like `SelectEnterEventArgs`) also needed proper references.
+Resolution: The `.cs` scripts have been implemented using the explicit, verbose namespace imports typical for the latest stable build of the Interaction Toolkit to prevent ambiguous reference errors.

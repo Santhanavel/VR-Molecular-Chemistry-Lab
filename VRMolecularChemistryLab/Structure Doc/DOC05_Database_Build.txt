@@ -1,0 +1,331 @@
+﻿DOC 05
+Molecule Database &
+Build Pipeline
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+VR Molecular Chemistry Lab â€” Unity 6 / XR Interaction Toolkit / Meta Quest
+DOC-05 of 05
+Overview
+This document contains the complete molecule data set â€” every entry you must populate into the MoleculeDatabase ScriptableObject â€” followed by the end-to-end APK build pipeline, Quest optimisation checklist, and submission steps.
+1. Complete Molecule Database â€” All 18 Entries
+The table below is the authoritative source. Fill this directly into MoleculeDatabase.asset via the Unity Inspector (or use a JSON import tool â€” see Section 2).
+Name
+Formula
+H
+O
+C
+N
+Bond Type
+Description
+Water
+H2O
+2
+1
+0
+0
+Single
+Essential solvent; bent geometry 104.5 degrees
+Hydrogen Gas
+H2
+2
+0
+0
+0
+Single
+Most abundant element; lightest diatomic gas
+Oxygen Gas
+O2
+0
+2
+0
+0
+Double
+Supports combustion and aerobic respiration
+Nitrogen Gas
+N2
+0
+0
+0
+2
+Triple
+78% of atmosphere; very stable triple bond
+Ammonia
+NH3
+3
+0
+0
+1
+Single
+Pungent gas; key feedstock in fertiliser production
+Carbon Dioxide
+CO2
+0
+2
+1
+0
+Double
+Greenhouse gas; produced by combustion and respiration
+Methane
+CH4
+4
+0
+1
+0
+Single
+Main component of natural gas; simplest alkane
+Hydrogen Cyanide
+HCN
+1
+0
+1
+1
+Triple
+Extremely toxic; used in polymer synthesis
+Nitric Oxide
+NO
+0
+1
+0
+1
+Single
+Free radical; biological signalling molecule
+Hydroxyl Radical
+OH
+1
+1
+0
+0
+Single
+Highly reactive radical; important in atmospheric chemistry
+Carbon Monoxide
+CO
+0
+1
+1
+0
+Triple
+Odourless toxic gas; CO2 precursor in combustion
+Diazene
+N2H2
+2
+0
+0
+2
+Double
+Unstable azo compound; used in organic synthesis
+Hydrazine
+N2H4
+4
+0
+0
+2
+Single
+Rocket fuel component; corrosive liquid
+Cyanogen
+C2N2
+0
+0
+2
+2
+Triple
+Toxic diatomic; burns with a peach-coloured flame
+Formaldehyde
+CH2O
+2
+1
+1
+0
+Double
+Simplest aldehyde; used in resins and disinfectants
+Methanol
+CH4O
+4
+1
+1
+0
+Single
+Simplest alcohol; used as fuel and solvent
+Urea
+CH4N2O
+4
+1
+1
+2
+Single
+End product of nitrogen metabolism in mammals
+Glycine
+C2H5NO2
+5
+2
+2
+1
+Single
+Simplest amino acid; building block of proteins
+2. ScriptableObject Population
+2.1  Manual Inspector Method (Recommended for first pass)
+In the Unity Project window, navigate to Assets/_Project/ScriptableObjects/
+Select MoleculeDatabase.asset
+In the Inspector, click the + button on the Molecules list
+Fill each field from the table in Section 1
+Drag the corresponding molecule prefab into the moleculePrefab slot
+Repeat for all 18 entries
+2.2  JSON Import Script (Optional speedup)
+To avoid 18 Ã— manual data entry, create a Unity Editor script that reads a JSON file and populates the ScriptableObject programmatically. Run it once from the Unity menu.
+// Save as: Assets/_Project/Editor/MoleculeDatabaseImporter.cs
+[MenuItem("VRLab/Import Molecule Database")]
+static void ImportDatabase()
+{
+    var db = AssetDatabase.LoadAssetAtPath<MoleculeDatabase>(
+        "Assets/_Project/ScriptableObjects/MoleculeDatabase.asset");
+    var json = File.ReadAllText("Assets/_Project/Data/molecules.json");
+    var data = JsonUtility.FromJson<MoleculeDataList>(json);
+    db.molecules = data.items;
+    EditorUtility.SetDirty(db);
+    AssetDatabase.SaveAssets();
+    Debug.Log("Imported " + db.molecules.Count + " molecules.");
+}
+3. Molecule Prefab Specification
+Each of the 18 molecule prefabs follows this hierarchy. Build a base template prefab then use Prefab Variants for each molecule.
+MoleculePrefab_[Name]  (root)
+  â”œâ”€â”€ MoleculeInstance.cs  (holds MoleculeData ref + ConsumedAtoms list)
+  â”œâ”€â”€ XRGrabInteractable   (allows player to grab & reset)
+  â”œâ”€â”€ Rigidbody            (Mass=0.1, UseGravity=false)
+  â”œâ”€â”€ BoxCollider          (sized to bounding box)
+  â”œâ”€â”€ Atoms_Group
+  â”‚   â”œâ”€â”€ Atom_0  (MeshRenderer: element material, sphere mesh)
+  â”‚   â”œâ”€â”€ Atom_1
+  â”‚   â””â”€â”€ ...  (one per atom in the molecule)
+  â”œâ”€â”€ Bonds_Group
+  â”‚   â”œâ”€â”€ Bond_0  (cylinder mesh, scaled to distance between two atoms)
+  â”‚   â”‚   â””â”€â”€ BondLabel  (TMP: "Single" / "Double" / "Triple")
+  â”‚   â””â”€â”€ ...  (one per bond in the molecule)
+  â””â”€â”€ Label_Root  (always-face-camera)
+      â”œâ”€â”€ MoleculeName  (TMP: "Water")
+      â””â”€â”€ FormulaLabel  (TMP: "H2O" with rich-text subscripts)
+3.1  Bond Cylinder Sizing
+// Utility called at prefab build time (or runtime spawn)
+void CreateBondCylinder(Transform from, Transform to, BondType type)
+{
+    var mid   = (from.position + to.position) * 0.5f;
+    var dir   = to.position - from.position;
+    float len = dir.magnitude;
+    var cyl   = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+    cyl.transform.position   = mid;
+    cyl.transform.up         = dir.normalized;
+    cyl.transform.localScale = new Vector3(0.015f, len * 0.5f, 0.015f);
+    // Double bond: spawn two offset cylinders side by side
+    // Triple bond: spawn three cylinders in a triangle pattern
+}
+4. Android / Meta Quest Build Pipeline
+4.1  One-Time Setup Steps
+Install Android Build Support module via Unity Hub > Installs > Add Modules.
+Install Android SDK & NDK Tools (bundled with Unity Hub Android module).
+In Unity: Edit > Project Settings > Player > Android tab:
+Company Name: your name; Product Name: VRMolecularLab
+Set Package Name: com.yourname.vrmolecularlab
+Set Minimum API Level: Android 10 (API 29)
+Set Target API Level: Android 13 (API 33)
+Scripting Backend: IL2CPP
+Target Architectures: ARM64 only (uncheck x86, x86_64)
+In XR Plug-in Management > Android tab: enable OpenXR.
+In OpenXR > Features: enable Meta Quest Support and Hand Tracking Subsystem.
+Create a debug keystore: Player Settings > Publishing Settings > Keystore Manager.
+4.2  Pre-Build Checklist
+#
+Check
+How to verify
+1
+All 18 molecules in MoleculeDatabase
+Select asset; Inspector shows 18 entries
+2
+All molecule prefabs assigned
+No null moleculePrefab field in any MoleculeData
+3
+Scene baked lighting
+Window > Rendering > Lighting > Generate Lighting (Auto = off)
+4
+No real-time directional shadows
+Directional Light > Shadow Type = No Shadows
+5
+Textures compressed ASTC
+Project Settings > Editor > Default Texture Compression = ASTC
+6
+Single-pass instanced stereo
+Project Settings > XR > Render Mode = Single Pass Instanced
+7
+Development Build OFF
+Build Settings > uncheck Development Build
+8
+IL2CPP backend
+Player Settings > Scripting Backend = IL2CPP
+9
+ARM64 only
+Player Settings > Target Architecture = ARM64 checked, others unchecked
+10
+Internet access = None
+Player Settings > Internet Access = None
+11
+Scenes in build
+Build Settings > Scenes in Build = MainLab.unity only
+12
+APK name contains your name
+Rename output file to VRMolecularLab_[YourName].apk before uploading
+4.3  Build Command
+// Option A: GUI
+File > Build Settings > Build  â†’  save as VRMolecularLab_YourName.apk
+// Option B: CLI (headless, useful for CI)
+Unity.exe -quit -batchmode -projectPath "." -buildTarget Android
+          -executeMethod BuildScript.BuildAndroid
+          -logFile build.log
+4.4  Installing on Quest
+Enable Developer Mode on the headset (Meta Developer Hub or via Oculus phone app).
+Connect Quest via USB-C.
+Run: adb install -r VRMolecularLab_YourName.apk
+App appears under Unknown Sources in the Quest library.
+Test all 7 required molecules plus as many bonus molecules as implemented.
+5. Quest Optimisation Checklist
+Optimisation
+Implementation detail
+GPU Instancing
+Enable on all atom and molecule materials; allows all same-element atoms to batch in one draw call
+Static batching
+Mark LabRoom, AtomTable, walls, floor as Static; Unity batches them at build time
+LOD Groups
+Lab environment mesh: LOD0 (full) at <3m, LOD1 (50% tri) at >3m; none needed on atoms (already low-poly)
+Occlusion Culling
+Bake via Window > Rendering > Occlusion Culling; small lab means minimal savings but costs nothing
+Texture atlasing
+Combine all UI sprites into a single 1024x1024 atlas; reduces UI draw calls from N to 1
+Audio compression
+Bond SFX: Vorbis, 44kHz, Load Type = Decompress on Load; Ambient: Vorbis, 22kHz, Streaming
+URP Forward+
+Use URP Forward+ renderer; disable HDR; disable MSAA (Quest uses FXAA); disable post-process
+Physics layers
+Matrix: Atom-Atom = collide; Atom-UI = none; Atom-Environment = collide; reduces OverlapSphere cost
+Profiler testing
+Connect Quest via Quest Link; Window > Analysis > Profiler; target CPU < 10ms/frame, GPU < 11ms/frame
+6. Submission Checklist
+6.1  GitHub Repository
+Repository is PUBLIC
+Full Unity project source committed (not just scripts â€” include Assets, ProjectSettings, Packages folders)
+Commit history shows incremental progress (not a single giant commit)
+README.md at root with: setup steps, package list, how to build, how to install APK
+README section "AI Tools Used" with at least 3 concrete examples
+6.2  Demo Video
+Unlisted YouTube link OR Google Drive link
+Shows: atom grab, molecule formation (minimum 3 different molecules), Library Panel updating, Inspector Panel, Reset flow
+Minimum 2 minutes; maximum 10 minutes
+Bonus: physical Quest headset footage (adds 5 evaluation points)
+6.3  APK File
+Filename: VRMolecularLab_[YourFullName].apk
+Signed with your project keystore
+Tested and confirmed working on at least one Quest device or Quest Link
+Uploaded to Google Drive or WeTransfer; link is direct download (not gated behind login)
+6.4  Email
+Subject: XR Assessment â€” [Your Full Name] â€” VR Molecular Lab
+Body must include:
+  â€¢ GitHub repository link (public)
+  â€¢ Unlisted YouTube / Google Drive video link
+  â€¢ Google Drive / WeTransfer APK download link
+  â€¢ Brief paragraph: which AI tools you used and how they helped
+Deadline reminder
+48 hours from receipt of the assessment document. Late submissions are not considered. Plan: build working prototype by hour 12, polish by hour 30, record and submit by hour 48.

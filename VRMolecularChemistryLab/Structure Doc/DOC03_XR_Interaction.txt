@@ -1,0 +1,261 @@
+﻿DOC 03
+XR Interaction &
+Gameplay Flow
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+VR Molecular Chemistry Lab â€” Unity 6 / XR Interaction Toolkit / Meta Quest
+DOC-03 of 05
+Overview
+This document covers every player-facing interaction: how atoms are grabbed, how proximity detection works, how the bond validation finite-state machine operates, how molecules are reset, and how haptic and audio feedback are triggered. All interaction logic references the classes defined in DOC-02.
+1. XR Controller Setup
+1.1  XR Origin Configuration
+Use the Action-Based XR Origin preset from the XR Interaction Toolkit starter assets. Do NOT use the legacy Device-Based rig â€” it is deprecated in XRIT 3.x.
+GameObject
+Required Components
+XR Origin (root)
+XROrigin.cs â€” sets Tracking Origin Mode to "Floor"
+Main Camera
+Camera, TrackedPoseDriver (driven by Head pose action)
+Left Controller
+XRController, XRDirectInteractor, XRRayInteractor, LineRenderer, ActionBasedController
+Right Controller
+XRController, XRDirectInteractor, XRRayInteractor, LineRenderer, ActionBasedController
+1.2  Input Action Mappings
+Action
+Binding
+Triggers
+Grip / Grab
+Grip Axis > 0.5
+XRGrabInteractable.selectEntered â†’ AtomController.OnGrabbed()
+Release
+Grip Axis < 0.3
+XRGrabInteractable.selectExited â†’ AtomController.OnReleased()
+UI Select
+Right Trigger Axis > 0.5
+XRRayInteractor fires ray; XRUIInputModule handles button press on world-space canvas
+Wrist Menu Toggle
+Left Menu Button
+UIManager.ToggleWristMenu()
+Teleport
+Left Thumbstick Forward
+TeleportationProvider (optional; lab space is small enough to skip)
+2. Atom Grab Lifecycle
+2.1  Atom Token Prefab Setup
+Each atom prefab must have exactly the following component stack:
+Component
+Key Settings
+MeshFilter
+Low-poly sphere mesh (32 faces)
+MeshRenderer
+Material = AtomToken.atomMaterial; Cast Shadows = Off (performance)
+SphereCollider
+Radius = 0.06m; Layer = "Atom" (custom physics layer)
+Rigidbody
+Mass = 0.1; Use Gravity = false; Interpolate = Interpolate; Collision Detection = Continuous
+XRGrabInteractable
+Movement Type = Velocity Tracking; Throw On Detach = false; Select Mode = Single
+AtomController
+atomData = element SO; proximityRadius = 0.12; bondManager = scene ref
+TextMeshPro (child)
+Element symbol label; Billboard Always; font size 0.08; always faces camera
+2.2  Grab State Transitions
+AtomController runs a simple two-state machine internally:
+State
+Entry Condition
+Behaviour
+IDLE
+App start / Reset
+Normal material; collider enabled; no proximity scan
+GRABBED
+Grip > 0.5
+Highlight material; proximity scan runs in FixedUpdate; snap zone indicator may show
+CONSUMED
+BondManager.FormMolecule()
+Renderer disabled; collider disabled; atom is hidden inside molecule prefab
+3. Bond Validation â€” Finite State Machine
+3.1  FSM States
+FSM State
+Description
+IDLE
+No atoms grabbed. BondManager listens passively.
+CHECKING
+At least one atom is grabbed and within proximityRadius of another. BondManager.OnAtomProximity() called each FixedUpdate tick while atoms are close.
+VALID
+Atom counts match a MoleculeData entry. Molecule prefab instantiated. All participant atoms consumed.
+INVALID
+Atom counts do not match any entry. OnBondFailed event fired. Cooldown timer set. FSM returns to IDLE after cooldown.
+COOLDOWN
+bondCooldown seconds (default 0.5s) after any bond attempt. Prevents double-trigger jitter.
+3.2  Validation Decision Table
+BondManager counts atoms by element symbol and matches against MoleculeDatabase. The table below shows how ambiguous combos are handled:
+H
+O
+C
+N
+Result
+Bond Type
+2
+1
+0
+0
+Water (H2O)
+Single
+2
+0
+0
+0
+Hydrogen Gas (H2)
+Single
+0
+2
+0
+0
+Oxygen Gas (O2)
+Double
+0
+0
+0
+2
+Nitrogen Gas (N2)
+Triple
+3
+0
+0
+1
+Ammonia (NH3)
+Single
+0
+2
+1
+0
+Carbon Dioxide (CO2)
+Double
+4
+0
+1
+0
+Methane (CH4)
+Single
+1
+0
+1
+1
+Hydrogen Cyanide (HCN)
+Triple
+0
+1
+0
+1
+Nitric Oxide (NO)
+Single
+1
+1
+0
+0
+Hydroxyl Radical (OH)
+Single
+0
+1
+1
+0
+Carbon Monoxide (CO)
+Triple
+2
+0
+0
+2
+Diazene (N2H2)
+Double
+4
+0
+0
+2
+Hydrazine (N2H4)
+Single
+0
+0
+2
+2
+Cyanogen (C2N2)
+Triple
+2
+1
+1
+0
+Formaldehyde (CH2O)
+Double
+4
+1
+1
+0
+Methanol (CH4O)
+Single
+4
+1
+1
+2
+Urea (CH4N2O)
+Single
+5
+2
+2
+1
+Glycine (C2H5NO2)
+Single
+Collision note
+No two molecule definitions share the same (H, O, C, N) count tuple, so TryFind() will never return an ambiguous result. The validation is a simple equality match â€” no fuzzy logic needed.
+4. Visual Affordances & Feedback
+Affordance
+Trigger
+Implementation
+Grab highlight
+Atom grabbed
+MeshRenderer.material = highlightMaterial (emissive rim)
+Snap zone ring
+Atom within bond range
+Enable snapZoneIndicator child; ring scales from 0 with DOTween punch
+Bond success burst
+Valid molecule formed
+ParticleSystem on BondManager spawn point; 0.3s burst
+Bond fail shake
+Invalid combo
+DOTween.Shake on trigger atom transform, 0.2s, strength 0.03
+Haptic on success
+Valid molecule formed
+XRBaseController.SendHapticImpulse(0.8f, 0.15f) on both controllers
+Haptic on fail
+Invalid combo
+XRBaseController.SendHapticImpulse(0.3f, 0.05f) short buzz
+5. Reset Flow
+Players must be able to break a formed molecule and reclaim its atoms. Reset can be triggered two ways: physically pulling a molecule apart (distance threshold), or pressing the Reset button on the Inspector Panel.
+5.1  Reset Steps
+Player grabs the molecule object (XRGrabInteractable on the molecule prefab root).
+Player moves the molecule more than resetDistanceThreshold (0.3m) from its spawn point, OR presses the UI Reset button.
+BondManager.ResetMolecule(GameObject mol) is called.
+All AtomController references stored on the molecule component have ResetAtom() called.
+Each atom re-enables its renderer and collider; positions are reset to AtomTable spawn points.
+The molecule prefab is Destroyed.
+BondManager fires OnMoleculeReset; UIManager updates the Library Panel (molecule remains in discovered list but is no longer "formed").
+5.2  MoleculeInstance Component
+A lightweight MonoBehaviour on every molecule prefab that stores the atom list and exposes the reset API:
+public class MoleculeInstance : MonoBehaviour
+{
+    public MoleculeData Data;
+    public List<AtomController> ConsumedAtoms;
+    // Called by BondManager
+    public void Dissolve()
+    {
+        foreach (var atom in ConsumedAtoms)
+            atom.ResetAtom();
+        Destroy(gameObject);
+    }
+}
+6. Optional â€” Hand Tracking Support
+If the XR Hands package is imported, replace XRDirectInteractor with XRHandSkeletonDriver and configure a pinch pose recognizer. The rest of the grab pipeline is identical because XR Hands publishes the same selectEntered / selectExited events.
+Setting
+Value
+Hand Subsystem
+Enable via XR Plug-in Management > OpenXR > Feature Groups > Hand Tracking Subsystem
+Grab gesture
+Pinch (thumb + index finger distance < 0.02m)
+Fallback
+If headset does not support hand tracking, XRController events are used automatically

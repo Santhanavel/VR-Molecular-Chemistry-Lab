@@ -1,0 +1,240 @@
+﻿DOC 01
+Project Overview &
+Architecture Design
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+VR Molecular Chemistry Lab â€” Unity 6 / XR Interaction Toolkit / Meta Quest
+Document
+DOC-01 of 05  â€”  Project Overview & Architecture
+Project
+VR Molecular Chemistry Lab
+Stack
+Unity 6  |  XR Interaction Toolkit 3.x  |  OpenXR  |  Android/Meta Quest
+Deadline
+48 hours from receipt  |  Signed APK + GitHub + Demo video
+1. Purpose & Scope
+This document serves as the primary reference for building the VR Molecular Chemistry Lab â€” a fully interactive Meta Quest application where students physically grab atom tokens in VR and combine them to form valid molecules. It covers the high-level goals, system architecture, Unity project layout, and the relationship between all five design documents in this series.
+1.1  What We Are Building
+A standalone VR experience that runs on Android (Meta Quest 2/3/Pro) in which:
+Players stand inside a virtual chemistry lab environment.
+Four atom types â€” Hydrogen (H), Oxygen (O), Carbon (C), Nitrogen (N) â€” exist as grabbable 3D tokens.
+Bringing atoms close together triggers a real-time bond validation system.
+Valid combinations instantly spawn a 3D molecule prefab with labelled bonds.
+A world-space Library Panel tracks every discovered molecule.
+A Molecule Inspector Panel shows detailed bond information when the player examines a molecule.
+Sound effects and haptic feedback reward every successful bond.
+1.2  What We Are NOT Building
+A flat-screen / non-VR application.
+A simulation with physics-accurate electron orbitals or quantum mechanics.
+Multiplayer or cloud-synced progress.
+Molecules beyond the 18 defined in the assessment spec.
+2. Document Series Map
+The full design is split into five focused documents. Each document maps to a distinct development concern.
+Doc #
+Title
+Covers
+DOC-01
+Project Overview & Architecture
+Goals, system layers, Unity project layout, package list, folder structure
+DOC-02
+C# Class Design & Data Models
+All five core classes, ScriptableObject schema, MoleculeData struct, AtomToken SO
+DOC-03
+XR Interaction & Gameplay Flow
+Grab mechanics, proximity detection, bond validation FSM, reset flow, haptics
+DOC-04
+VR UI / UX Design
+World-space canvas rules, Library Panel, Inspector Panel, Wrist Menu, ray-cast setup
+DOC-05
+Molecule Database & Build Pipeline
+All 18 molecule definitions, bond data, APK build config, Quest optimisation checklist
+3. System Architecture â€” Three Layers
+The application is structured in three clearly separated layers. This separation keeps each concern testable in isolation and prevents monolithic scripts.
+3.1  Layer 1 â€” XR Input
+Provided entirely by Unity packages. No custom code lives here; we only subscribe to events.
+Component
+Responsibility
+OpenXR Plugin
+Translates raw Quest controller / hand-tracking data into Unity XR input actions
+XR Interaction Toolkit 3.x
+Provides XRGrabInteractable, XRRayInteractor, and the interaction event pipeline
+Input Action Asset
+Maps Quest buttons/triggers to Grab, Teleport, and UI-Select actions
+XR Hands (optional)
+Enables hand-tracking via MediaPipe; atom grab works with pinch gesture
+3.2  Layer 2 â€” Logic / Game Systems (Our Code)
+Five C# classes handle all application logic. They communicate through direct method calls and C# events â€” never via FindObjectOfType at runtime.
+Class
+Pattern
+Core responsibility
+AtomController
+MonoBehaviour
+Per-atom: handles XR grab events, proximity scanning, and bond-trigger dispatch
+BondManager
+Singleton
+Receives atom sets, queries MoleculeDatabase, spawns/destroys molecule prefabs
+MoleculeDatabase
+ScriptableObject
+Data-only asset: stores all 18 MoleculeData entries; no MonoBehaviour lifecycle
+UIManager
+MonoBehaviour
+Drives all world-space canvas panels: Library, Inspector, Wrist Menu
+AudioManager
+Singleton
+Plays bond-success chime, bond-fail buzz, molecule-inspect ambient; no hard-coded clips
+3.3  Layer 3 â€” Output / Presentation
+Prefabs and world-space UI objects that are instantiated at runtime by the Logic layer.
+Output Asset
+Description
+Molecule Prefabs (Ã—18)
+3D mesh with bond cylinders, atom spheres, and TMP labels for bond type (single/double/triple)
+Library Panel
+World-space canvas listing all discovered molecules with name, formula, and thumbnail
+Inspector Panel
+Shows detailed bond info when player ray-casts at a formed molecule
+Wrist Menu
+Quick-access panel attached to left hand; allows atom spawning without walking to atom table
+Atom Token Prefabs (Ã—4)
+Coloured spheres with element label (H=white, O=red, C=black, N=blue), XRGrabInteractable attached
+4. Unity Project Layout
+4.1  Package Dependencies
+Add the following via the Unity Package Manager (UPM). All are available from the Unity Registry unless noted.
+Package
+Version
+Required / Optional
+XR Interaction Toolkit
+3.0.x
+REQUIRED
+OpenXR Plugin
+Latest stable
+REQUIRED
+Universal Render Pipeline
+17.x (Unity 6)
+REQUIRED â€” performance on Quest
+TextMeshPro
+3.x (bundled)
+REQUIRED â€” all in-world text
+XR Hands
+1.4.x
+OPTIONAL â€” hand-tracking grab
+DOTween (Asset Store)
+1.2.x
+OPTIONAL â€” UI animations
+4.2  Folder Structure
+Strictly organised so that any team member (or AI tool) can locate any asset in under 10 seconds.
+Assets/
+  _Project/
+    Scripts/
+      Core/          <- AtomController.cs, BondManager.cs, AudioManager.cs
+      Data/          <- MoleculeDatabase.cs, MoleculeData.cs, AtomToken.cs
+      UI/            <- UIManager.cs, LibraryPanel.cs, InspectorPanel.cs
+      Utils/         <- Extensions, helpers, constants
+    Prefabs/
+      Atoms/         <- H_Atom.prefab, O_Atom.prefab, C_Atom.prefab, N_Atom.prefab
+      Molecules/     <- Water.prefab, Methane.prefab ... (one per molecule)
+      UI/            <- LibraryPanel.prefab, InspectorPanel.prefab, WristMenu.prefab
+    ScriptableObjects/
+      MoleculeDatabase.asset     <- The single DB instance
+      Atoms/                     <- H_Token.asset, O_Token.asset, C_Token.asset, N_Token.asset
+    Scenes/
+      MainLab.unity              <- Primary scene
+      TestBench.unity            <- Isolated grab/bond testing
+    Audio/
+      BondSuccess.wav
+      BondFail.wav
+      Ambient.wav
+    Materials/
+      Atoms/         <- One URP Lit material per element (colour-coded)
+      Environment/
+    Settings/
+      UniversalRenderPipelineAsset.asset
+      XRInteractionSettings.asset
+4.3  Scene Hierarchy (MainLab.unity)
+MainLab
+  â”œâ”€â”€ XR Origin (Action-based)
+  â”‚   â”œâ”€â”€ Camera Offset
+  â”‚   â”‚   â”œâ”€â”€ Main Camera
+  â”‚   â”‚   â”œâ”€â”€ Left Controller  (XRRayInteractor + XRDirectInteractor)
+  â”‚   â”‚   â””â”€â”€ Right Controller (XRRayInteractor + XRDirectInteractor)
+  â”œâ”€â”€ Managers  [MANAGERS tag]
+  â”‚   â”œâ”€â”€ BondManager.cs
+  â”‚   â”œâ”€â”€ UIManager.cs
+  â”‚   â””â”€â”€ AudioManager.cs
+  â”œâ”€â”€ MoleculeDatabase  (ScriptableObject reference holder)
+  â”œâ”€â”€ Environment
+  â”‚   â”œâ”€â”€ LabRoom  (static mesh, baked lighting)
+  â”‚   â”œâ”€â”€ AtomTable  (spawn point for atom tokens)
+  â”‚   â””â”€â”€ Lighting
+  â”œâ”€â”€ UI_WorldSpace
+  â”‚   â”œâ”€â”€ LibraryPanel  (world-space canvas, 1.5m in front)
+  â”‚   â””â”€â”€ InspectorPanel  (world-space canvas, spawned on demand)
+  â””â”€â”€ AtomSpawnPoints  (empty GameObjects, 4 positions)
+5. Build Configuration
+Setting
+Value
+Platform
+Android
+Minimum API Level
+Android 10 / API 29 (Meta Quest requirement)
+Target API Level
+Android 13 / API 33 (recommended for Quest 3)
+Scripting Backend
+IL2CPP
+Target Architecture
+ARM64 only (strip x86/x86_64 to reduce APK size)
+Render Mode
+Single-Pass Instanced Stereo (XR Settings)
+Color Space
+Linear
+Graphics API
+Vulkan (primary), OpenGL ES 3.1 (fallback)
+Internet Access
+None (no runtime network calls)
+Keystore
+Create project keystore in Player Settings > Publishing Settings
+Build note
+Enable "Development Build" only for testing on Quest Link. Disable it before generating the final submission APK â€” it significantly reduces APK size and removes debug overhead.
+6. Performance Targets
+Meta Quest 2 is the minimum hardware target. Meeting these numbers ensures the experience is comfortable and submission-ready.
+Metric
+Target
+Technique
+Framerate
+72 fps (Quest 2), 90 fps (Quest 3)
+Single-pass stereo, URP Forward+, no post-process stack
+Draw calls per eye
+< 100
+GPU instancing on atom/molecule materials, static batching on lab mesh
+Triangle count
+< 500k per eye
+Low-poly atom spheres (32 faces), LOD on environment
+Texture memory
+< 512 MB
+ASTC compression for all textures, 512x512 max for UI sprites
+Lighting
+Fully baked
+No real-time shadows, baked lightmaps via Adaptive Probe Volumes
+Physics
+Minimal
+Colliders only on atoms; no Rigidbody gravity after grab
+7. AI Tool Usage Plan
+The assessment explicitly evaluates AI tool usage. The following plan maps each AI tool to specific deliverables so the README section is well-evidenced.
+Tool
+Used For
+Specific Example
+GitHub Copilot
+Code completion
+Auto-complete AtomController.CheckProximity(), BondManager.ValidateBond() boilerplate
+Claude / ChatGPT
+Architecture design, debugging
+Generate MoleculeDatabase ScriptableObject schema; debug XR grab interaction edge cases
+Claude / ChatGPT
+Molecule data generation
+Generate the full 18-molecule JSON dataset with bond types, atom counts, and C# struct literals
+Meshy.ai
+3D asset generation
+Generate low-poly atom sphere and molecule bond-stick meshes as .glb, import to Unity
+Leonardo.ai
+UI textures
+Generate panel background textures and atom icon sprites for the Library Panel
+README requirement
+The submission README must include a section titled "AI Tools Used" with at least 3 concrete examples. Screenshot evidence of Copilot suggestions is a strong differentiator.

@@ -1,0 +1,184 @@
+{
+  "items": [
+    {
+      "moleculeName": "Water",
+      "formula": "H2O",
+      "hydrogenCount": 2,
+      "oxygenCount": 1,
+      "carbonCount": 0,
+      "nitrogenCount": 0,
+      "bondType": 0,
+      "description": "Essential solvent; bent geometry 104.5 degrees"
+    },
+    {
+      "moleculeName": "Hydrogen Gas",
+      "formula": "H2",
+      "hydrogenCount": 2,
+      "oxygenCount": 0,
+      "carbonCount": 0,
+      "nitrogenCount": 0,
+      "bondType": 0,
+      "description": "Most abundant element; lightest diatomic gas"
+    },
+    {
+      "moleculeName": "Oxygen Gas",
+      "formula": "O2",
+      "hydrogenCount": 0,
+      "oxygenCount": 2,
+      "carbonCount": 0,
+      "nitrogenCount": 0,
+      "bondType": 1,
+      "description": "Supports combustion and aerobic respiration"
+    },
+    {
+      "moleculeName": "Nitrogen Gas",
+      "formula": "N2",
+      "hydrogenCount": 0,
+      "oxygenCount": 0,
+      "carbonCount": 0,
+      "nitrogenCount": 2,
+      "bondType": 2,
+      "description": "78% of atmosphere; very stable triple bond"
+    },
+    {
+      "moleculeName": "Ammonia",
+      "formula": "NH3",
+      "hydrogenCount": 3,
+      "oxygenCount": 0,
+      "carbonCount": 0,
+      "nitrogenCount": 1,
+      "bondType": 0,
+      "description": "Pungent gas; key feedstock in fertiliser production"
+    },
+    {
+      "moleculeName": "Carbon Dioxide",
+      "formula": "CO2",
+      "hydrogenCount": 0,
+      "oxygenCount": 2,
+      "carbonCount": 1,
+      "nitrogenCount": 0,
+      "bondType": 1,
+      "description": "Greenhouse gas; produced by combustion and respiration"
+    },
+    {
+      "moleculeName": "Methane",
+      "formula": "CH4",
+      "hydrogenCount": 4,
+      "oxygenCount": 0,
+      "carbonCount": 1,
+      "nitrogenCount": 0,
+      "bondType": 0,
+      "description": "Main component of natural gas; simplest alkane"
+    },
+    {
+      "moleculeName": "Hydrogen Cyanide",
+      "formula": "HCN",
+      "hydrogenCount": 1,
+      "oxygenCount": 0,
+      "carbonCount": 1,
+      "nitrogenCount": 1,
+      "bondType": 2,
+      "description": "Extremely toxic; used in polymer synthesis"
+    },
+    {
+      "moleculeName": "Nitric Oxide",
+      "formula": "NO",
+      "hydrogenCount": 0,
+      "oxygenCount": 1,
+      "carbonCount": 0,
+      "nitrogenCount": 1,
+      "bondType": 0,
+      "description": "Free radical; biological signalling molecule"
+    },
+    {
+      "moleculeName": "Hydroxyl Radical",
+      "formula": "OH",
+      "hydrogenCount": 1,
+      "oxygenCount": 1,
+      "carbonCount": 0,
+      "nitrogenCount": 0,
+      "bondType": 0,
+      "description": "Highly reactive radical; important in atmospheric chemistry"
+    },
+    {
+      "moleculeName": "Carbon Monoxide",
+      "formula": "CO",
+      "hydrogenCount": 0,
+      "oxygenCount": 1,
+      "carbonCount": 1,
+      "nitrogenCount": 0,
+      "bondType": 2,
+      "description": "Odourless toxic gas; CO2 precursor in combustion"
+    },
+    {
+      "moleculeName": "Diazene",
+      "formula": "N2H2",
+      "hydrogenCount": 2,
+      "oxygenCount": 0,
+      "carbonCount": 0,
+      "nitrogenCount": 2,
+      "bondType": 1,
+      "description": "Unstable azo compound; used in organic synthesis"
+    },
+    {
+      "moleculeName": "Hydrazine",
+      "formula": "N2H4",
+      "hydrogenCount": 4,
+      "oxygenCount": 0,
+      "carbonCount": 0,
+      "nitrogenCount": 2,
+      "bondType": 0,
+      "description": "Rocket fuel component; corrosive liquid"
+    },
+    {
+      "moleculeName": "Cyanogen",
+      "formula": "C2N2",
+      "hydrogenCount": 0,
+      "oxygenCount": 0,
+      "carbonCount": 2,
+      "nitrogenCount": 2,
+      "bondType": 2,
+      "description": "Toxic diatomic; burns with a peach-coloured flame"
+    },
+    {
+      "moleculeName": "Formaldehyde",
+      "formula": "CH2O",
+      "hydrogenCount": 2,
+      "oxygenCount": 1,
+      "carbonCount": 1,
+      "nitrogenCount": 0,
+      "bondType": 1,
+      "description": "Simplest aldehyde; used in resins and disinfectants"
+    },
+    {
+      "moleculeName": "Methanol",
+      "formula": "CH4O",
+      "hydrogenCount": 4,
+      "oxygenCount": 1,
+      "carbonCount": 1,
+      "nitrogenCount": 0,
+      "bondType": 0,
+      "description": "Simplest alcohol; used as fuel and solvent"
+    },
+    {
+      "moleculeName": "Urea",
+      "formula": "CH4N2O",
+      "hydrogenCount": 4,
+      "oxygenCount": 1,
+      "carbonCount": 1,
+      "nitrogenCount": 2,
+      "bondType": 0,
+      "description": "End product of nitrogen metabolism in mammals"
+    },
+    {
+      "moleculeName": "Glycine",
+      "formula": "C2H5NO2",
+      "hydrogenCount": 5,
+      "oxygenCount": 2,
+      "carbonCount": 2,
+      "nitrogenCount": 1,
+      "bondType": 0,
+      "description": "Simplest amino acid; building block of proteins"
+    }
+  ]
+}
