@@ -18,3 +18,4 @@ MonoBehaviour:
   atomMaterial: {fileID: 2100000, guid: fab21000d08dc61468476e436f59b05c, type: 2}
   atomMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   labelText: N
+  atomPrefab: {fileID: 862413750579969943, guid: 058a951abed74674bb80c121c0156ec1, type: 3}

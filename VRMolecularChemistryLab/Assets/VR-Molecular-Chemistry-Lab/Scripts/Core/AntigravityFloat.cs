@@ -46,6 +46,14 @@ namespace VRMolecularLab.Core
         {
             if (_atomController != null && !_atomController.IsConsumed && this.enabled && gameObject.activeInHierarchy)
             {
+                StartReturnHome();
+            }
+        }
+
+        public void StartReturnHome()
+        {
+            if (this != null && gameObject.activeInHierarchy && this.enabled)
+            {
                 if (_rtnH != null) StopCoroutine(_rtnH);
                 _rtnH = StartCoroutine(ReturnHome());
             }

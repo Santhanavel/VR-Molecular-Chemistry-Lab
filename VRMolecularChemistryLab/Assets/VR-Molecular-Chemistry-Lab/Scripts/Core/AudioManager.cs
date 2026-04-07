@@ -15,10 +15,6 @@ namespace VRMolecularLab.Core
         public AudioClip ambientClip;
         public AudioClip atomPlacedClip;
 
-        // An array of references to controllers in the scene for haptic feedback
-        // Use XRBaseController (since Doc mentions SendHapticImpulse on XRBaseController)
-        public UnityEngine.XR.Interaction.Toolkit.XRBaseController[] controllers;
-
         private AudioSource _audioSource;
         private AudioSource _ambientSource;
 
@@ -81,8 +77,6 @@ namespace VRMolecularLab.Core
             {
                 _audioSource.PlayOneShot(bondSuccessClip);
             }
-            
-            TriggerHaptics(0.8f, 0.15f);
         }
 
         public void PlayBondFail()
@@ -91,8 +85,6 @@ namespace VRMolecularLab.Core
             {
                 _audioSource.PlayOneShot(bondFailClip);
             }
-            
-            TriggerHaptics(0.3f, 0.05f);
         }
 
         public void PlayAtomPlaced()
@@ -103,17 +95,5 @@ namespace VRMolecularLab.Core
             }
         }
 
-        private void TriggerHaptics(float amplitude, float duration)
-        {
-            if (controllers == null) return;
-            
-            foreach (var controller in controllers)
-            {
-                if (controller != null)
-                {
-                    controller.SendHapticImpulse(amplitude, duration);
-                }
-            }
-        }
     }
 }

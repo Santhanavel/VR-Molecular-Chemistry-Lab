@@ -65,11 +65,37 @@ namespace VRMolecularLab.Core
         public void TryAccept(AtomController atom)
         {
             if (IsOccupied || atom == null) return;
+            
+            // Temporary lock to prevent parallel logic execution
             occupant = atom;
             _lastPlace = Time.time;
+            
+            // Temporarily set IsPlaced to true so the Spawner knows it's consumed from the pool
+            atom.IsPlaced = true;
 
-            var antiGravity = atom.GetComponent<AntigravityFloat>();
-            if (antiGravity != null) antiGravity.enabled = false;
+            bool isAccepted = true;
+            if (BondSocketManager.Instance != null) 
+            {
+                 isAccepted = BondSocketManager.Instance.OnSocketOccupied(this, atom);
+            }
+
+            if (!isAccepted)
+            {
+                atom.IsPlaced = false; // Revert immediately
+                occupant = null;
+                FlashInvalid();
+                
+                // Return atom home
+                var antiGravity = atom.GetComponent<AntigravityFloat>();
+                if (antiGravity != null)
+                {
+                    antiGravity.StartReturnHome();
+                }
+                return;
+            }
+
+            var antiGravityCom = atom.GetComponent<AntigravityFloat>();
+            if (antiGravityCom != null) antiGravityCom.enabled = false;
 
             atom.transform.position = transform.position;
             var rb = atom.GetComponent<Rigidbody>();
@@ -77,14 +103,12 @@ namespace VRMolecularLab.Core
 
             var xri = atom.GetComponent<XRGrabInteractable>();
             if (xri != null) xri.enabled = false;
-            atom.IsPlaced = true;
 
             if (socketVisual != null) socketVisual.SetActive(false);
             var col = GetComponent<Collider>();
             if (col != null) col.enabled = false;
 
             if (AudioManager.Instance != null) AudioManager.Instance.PlayAtomPlaced();
-            if (BondSocketManager.Instance != null) BondSocketManager.Instance.OnSocketOccupied(this, atom);
 
             if (_flashCo != null) StopCoroutine(_flashCo);
             _flashCo = StartCoroutine(FlashColor(Color.green, 0.2f));

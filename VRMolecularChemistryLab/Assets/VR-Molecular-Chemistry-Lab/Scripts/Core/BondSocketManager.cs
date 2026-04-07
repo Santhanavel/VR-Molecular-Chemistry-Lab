@@ -33,11 +33,26 @@ namespace VRMolecularLab.Core
             }
         }
 
-        public void OnSocketOccupied(BondSocket filledSocket, AtomController atom)
+        public bool OnSocketOccupied(BondSocket filledSocket, AtomController atom)
         {
-            if (atom == null) return;
+            if (atom == null) return false;
             _placedAtoms.Add(atom);
 
+            if (BondManager.Instance != null)
+            {
+                var eval = BondManager.Instance.EvaluatePlacedAtoms(_placedAtoms);
+                if (eval.isImpossible)
+                {
+                    _placedAtoms.Remove(atom);
+                    return false; // Tells the socket to reject it
+                }
+                else if (eval.result.HasValue && MoleculeSpawnController.Instance != null)
+                {
+                    MoleculeSpawnController.Instance.SpawnOrUpgrade(eval.result.Value, new List<AtomController>(_placedAtoms));
+                }
+            }
+
+            // Only proceeds if accepted
             if (AtomSpawner.Instance != null && atom.atomData != null)
                 AtomSpawner.Instance.RespawnAtom(atom.atomData);
 
@@ -55,13 +70,7 @@ namespace VRMolecularLab.Core
                 }
             }
 
-            if (BondManager.Instance != null)
-            {
-                var eval = BondManager.Instance.EvaluatePlacedAtoms(_placedAtoms);
-                if (eval.isImpossible) filledSocket.FlashInvalid();
-                else if (eval.result.HasValue && MoleculeSpawnController.Instance != null)
-                    MoleculeSpawnController.Instance.SpawnOrUpgrade(eval.result.Value, new List<AtomController>(_placedAtoms));
-            }
+            return true;
         }
 
         public void ResetAllSockets()
