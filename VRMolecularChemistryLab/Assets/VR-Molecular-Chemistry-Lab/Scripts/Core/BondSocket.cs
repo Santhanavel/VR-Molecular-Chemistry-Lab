@@ -89,29 +89,39 @@ namespace VRMolecularLab.Core
                 var antiGravity = atom.GetComponent<AntigravityFloat>();
                 if (antiGravity != null)
                 {
-                    antiGravity.StartReturnHome();
+                    antiGravity.StartReturnHome(0f); // 0 seconds so it snaps immediately if rejected
                 }
                 return;
             }
 
-            var antiGravityCom = atom.GetComponent<AntigravityFloat>();
-            if (antiGravityCom != null) antiGravityCom.enabled = false;
+            // If we've made it here, BondSocketManager has auto-mapped the items via ReorderPlacedAtoms.
+            // We just execute FX for the successful drop.
+            if (AudioManager.Instance != null) AudioManager.Instance.PlayAtomPlaced();
 
+            if (_flashCo != null) StopCoroutine(_flashCo);
+            _flashCo = StartCoroutine(FlashColor(Color.green, 0.2f));
+        }
+
+        public void ForceOccupy(AtomController atom)
+        {
+            occupant = atom;
+            atom.IsPlaced = true;
+            
             atom.transform.position = transform.position;
+            atom.transform.rotation = Quaternion.identity;
+            
             var rb = atom.GetComponent<Rigidbody>();
             if (rb != null) rb.isKinematic = true;
 
             var xri = atom.GetComponent<XRGrabInteractable>();
             if (xri != null) xri.enabled = false;
+            
+            var antiGravityCom = atom.GetComponent<AntigravityFloat>();
+            if (antiGravityCom != null) antiGravityCom.enabled = false;
 
             if (socketVisual != null) socketVisual.SetActive(false);
             var col = GetComponent<Collider>();
             if (col != null) col.enabled = false;
-
-            if (AudioManager.Instance != null) AudioManager.Instance.PlayAtomPlaced();
-
-            if (_flashCo != null) StopCoroutine(_flashCo);
-            _flashCo = StartCoroutine(FlashColor(Color.green, 0.2f));
         }
 
         public void FlashInvalid()

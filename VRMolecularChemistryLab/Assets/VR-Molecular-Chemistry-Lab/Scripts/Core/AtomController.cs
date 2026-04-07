@@ -94,6 +94,21 @@ namespace VRMolecularLab.Core
                 snapZoneIndicator.SetActive(false);
             }
             if (BondSocketManager.Instance != null) BondSocketManager.Instance.UnregisterGrab();
+            
+            StartCoroutine(CheckAndReturn());
+        }
+
+        private System.Collections.IEnumerator CheckAndReturn()
+        {
+            yield return new WaitForEndOfFrame();
+            if (!IsPlaced && !IsConsumed)
+            {
+                var antiG = GetComponent<AntigravityFloat>();
+                if (antiG != null && !antiG.IsReturning)
+                {
+                    antiG.StartReturnHome(1.0f); // Fire normal 1s delayed return
+                }
+            }
         }
 
         private void FixedUpdate()

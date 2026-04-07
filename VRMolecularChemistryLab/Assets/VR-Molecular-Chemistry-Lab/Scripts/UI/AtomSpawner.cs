@@ -106,6 +106,13 @@ namespace VRMolecularLab.UI
                     if (_homeMap.TryGetValue(ac, out Vector3 home))
                     {
                         newMap[ac] = home;
+                        
+                        if (!ac.IsGrabbed)
+                        {
+                            var antiG = obj.GetComponent<AntigravityFloat>();
+                            if (antiG != null) antiG.StopAllCoroutines();
+                            obj.transform.position = home;
+                        }
                     }
                 }
                 else if (ac != null)

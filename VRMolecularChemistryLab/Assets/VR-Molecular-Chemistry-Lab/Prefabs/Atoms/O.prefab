@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 2504878623473333132}
   - component: {fileID: 5704270647563887632}
   - component: {fileID: 5236606906633729078}
+  - component: {fileID: -1715397895316490542}
   m_Layer: 0
   m_Name: O
   m_TagString: Untagged
@@ -291,3 +292,15 @@ MonoBehaviour:
   highlightMaterial: {fileID: 2100000, guid: ec88a2aa333640c439e1fb9c17e1d031, type: 2}
   bondManager: {fileID: 0}
   snapZoneIndicator: {fileID: 0}
+--- !u!114 &-1715397895316490542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4223828574067338746}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c3e9f61f9c090c4493f72fe0f6087f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VRMolecularLab.Core.AntigravityFloat

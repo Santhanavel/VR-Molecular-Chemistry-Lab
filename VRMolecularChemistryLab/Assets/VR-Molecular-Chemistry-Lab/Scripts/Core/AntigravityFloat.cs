@@ -15,6 +15,8 @@ namespace VRMolecularLab.Core
         private Coroutine _rtnH;
         private XRGrabInteractable _xri;
 
+        public bool IsReturning => _rtnH != null;
+
         private void Awake()
         {
             _atomController = GetComponent<AtomController>();
@@ -23,44 +25,54 @@ namespace VRMolecularLab.Core
             _xri = GetComponent<XRGrabInteractable>();
         }
 
-        private void OnEnable() { if (_xri != null) _xri.selectExited.AddListener(OnReleased); }
-        private void OnDisable() { if (_xri != null) _xri.selectExited.RemoveListener(OnReleased); }
-
         private void Update()
         {
             if (_atomController == null) return;
-            if (_atomController.IsConsumed) { this.enabled = false; return; }
+            if (_atomController.IsConsumed || _atomController.IsPlaced) { this.enabled = false; return; }
             if (_atomController.IsGrabbed)
             {
                 if (_rtnH != null) { StopCoroutine(_rtnH); _rtnH = null; }
                 return;
             }
-            if (!_atomController.IsGrabbed && !_atomController.IsConsumed && _rtnH == null)
+            if (!_atomController.IsGrabbed && !_atomController.IsConsumed && !_atomController.IsPlaced && _rtnH == null)
             {
                 float yOff = Mathf.Sin(Time.time * 1.2f + _phase) * 0.04f;
-                transform.position = new Vector3(transform.position.x, _homePosition.y + yOff, transform.position.z);
+                // Force X and Z to stay locked to home columns in case they drifted
+                transform.position = new Vector3(_homePosition.x, _homePosition.y + yOff, _homePosition.z);
             }
         }
 
-        private void OnReleased(SelectExitEventArgs args)
-        {
-            if (_atomController != null && !_atomController.IsConsumed && this.enabled && gameObject.activeInHierarchy)
-            {
-                StartReturnHome();
-            }
-        }
-
-        public void StartReturnHome()
+        public void StartReturnHome(float delay = 0f)
         {
             if (this != null && gameObject.activeInHierarchy && this.enabled)
             {
                 if (_rtnH != null) StopCoroutine(_rtnH);
-                _rtnH = StartCoroutine(ReturnHome());
+                _rtnH = StartCoroutine(ReturnHome(delay));
             }
         }
 
-        private IEnumerator ReturnHome()
+        private IEnumerator ReturnHome(float delay)
         {
+            if (_rb != null) _rb.isKinematic = true; // Lock physics immediately to prevent drops
+
+            // Float in the air where we left it for the delay period
+            if (delay > 0f)
+            {
+                float waitElapsed = 0f;
+                // Capture initial spot
+                Vector3 holdPos = transform.position;
+                while (waitElapsed < delay)
+                {
+                    if (_atomController == null || _atomController.IsGrabbed) yield break;
+                    
+                    float yOff = Mathf.Sin(Time.time * 2f + _phase) * 0.005f;
+                    transform.position = holdPos + new Vector3(0, yOff, 0);
+
+                    waitElapsed += Time.deltaTime;
+                    yield return null;
+                }
+            }
+
             float elapsed = 0f;
             Vector3 startPos = transform.position;
             while (elapsed < 0.4f)

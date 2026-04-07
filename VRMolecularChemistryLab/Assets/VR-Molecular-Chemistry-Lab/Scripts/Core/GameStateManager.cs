@@ -17,6 +17,7 @@ namespace VRMolecularLab.Core
 
         [Header("UI References")]
         public GameObject instructionPanel;
+        public GameObject libraryPanel;
         public GameObject startButton;
         public GameObject spawnPoint;
 
@@ -26,6 +27,7 @@ namespace VRMolecularLab.Core
             if (instructionPanel != null) instructionPanel.SetActive(true);
             if (startButton != null) startButton.SetActive(false);
             if (spawnPoint != null) spawnPoint.SetActive(false);
+            if (libraryPanel != null) libraryPanel.SetActive(false);
             StartCoroutine(WaitAndShowStartButton(2f));
         }
 
@@ -43,6 +45,7 @@ namespace VRMolecularLab.Core
 
             if (atomSpawner != null) atomSpawner.StartSession();
             if (spawnPoint != null) spawnPoint.SetActive(true);
+            if (libraryPanel != null) libraryPanel.SetActive(true);
 
             if (bondSocketManager != null) bondSocketManager.OpenFirstSocket();
             _state = GameState.Active;
@@ -60,6 +63,7 @@ namespace VRMolecularLab.Core
             if (spawnPoint != null) spawnPoint.SetActive(false);
             if (instructionPanel != null) instructionPanel.SetActive(true);
             if (startButton != null) startButton.SetActive(true);
+            if (libraryPanel != null) libraryPanel.SetActive(false);
             _state = GameState.Idle;
         }
 

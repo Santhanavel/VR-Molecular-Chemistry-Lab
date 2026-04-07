@@ -52,6 +52,9 @@ namespace VRMolecularLab.Core
                 }
             }
 
+            // ATOM ACCEPTED. REORDER NOW.
+            ReorderPlacedAtoms();
+
             // Only proceeds if accepted
             if (AtomSpawner.Instance != null && atom.atomData != null)
                 AtomSpawner.Instance.RespawnAtom(atom.atomData);
@@ -59,8 +62,7 @@ namespace VRMolecularLab.Core
             if (_activeSockets.Count < MAX_SOCKETS)
             {
                 float xOff = socketOffset * _activeSockets.Count;
-                float yOff = (_activeSockets.Count % 3 == 0) ? socketOffset * 0.5f : 0f;
-                var nextPos = socketSpawnRoot.position + new Vector3(xOff, yOff, 0);
+                var nextPos = socketSpawnRoot.position + new Vector3(xOff, 0f, 0f);
                 var nextObj = Instantiate(bondSocketPrefab, nextPos, Quaternion.identity, socketSpawnRoot);
                 var nextSocket = nextObj.GetComponent<BondSocket>();
                 if (nextSocket != null)
@@ -101,6 +103,27 @@ namespace VRMolecularLab.Core
                 if (socket != null && !socket.IsOccupied && socket.socketVisual != null)
                 {
                     socket.socketVisual.SetActive(IsSockedVisible);
+                }
+            }
+        }
+
+        private void ReorderPlacedAtoms()
+        {
+            // Clear all socket bindings first
+            foreach (var socket in _activeSockets)
+            {
+                socket.occupant = null;
+            }
+
+            // Alphabetical grouping (Sort places identical atoms adjacently)
+            _placedAtoms.Sort((a, b) => a.ElementSymbol.CompareTo(b.ElementSymbol));
+
+            // Force assign in straight order
+            for (int i = 0; i < _placedAtoms.Count; i++)
+            {
+                if (i < _activeSockets.Count)
+                {
+                    _activeSockets[i].ForceOccupy(_placedAtoms[i]);
                 }
             }
         }
