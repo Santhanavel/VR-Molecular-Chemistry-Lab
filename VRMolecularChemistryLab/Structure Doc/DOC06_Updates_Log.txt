@@ -17,3 +17,15 @@ Resolution: The DOTween calls in `UIManager.cs` were replaced with native Unity 
 3. XR Interaction Toolkit 3.x Namespaces
 Issue (DOC-02, DOC-03): Direct class references to `XRGrabInteractable` mapping were assumed to be in the base namespace, but XRIT 3.x often pushes these into sub-namespaces (e.g., `UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable`). Event payload types (like `SelectEnterEventArgs`) also needed proper references.
 Resolution: The `.cs` scripts have been implemented using the explicit, verbose namespace imports typical for the latest stable build of the Interaction Toolkit to prevent ambiguous reference errors.
+
+4. Migration to Socket-Based Architecture
+Issue (DOC-03): The original design specified a proximity-based bonding system (`AtomController` scanning overlaps). However, free-form proximity bonding in VR often leads to unpredictable chaining, physics jitter, and uncomfortable user experiences.
+Resolution: Replaced proximity logic with a rigid Socket-Based Architecture. Created `BondSocket.cs` and `BondSocketManager.cs` to dynamically generate snap-drop zones (up to 24 slots) that automatically validate bonds and sort atoms cleanly into a linear sequence, significantly increasing gameplay reliability.
+
+5. Dynamic Physics & Idle Hover Interpolation
+Issue (DOC-04): Released or loose atoms drifting on the floor breaks the controlled laboratory space.
+Resolution: Built `AntigravityFloat.cs` which captures dropped atoms, holds them exactly in the air for 1.0 second upon release, and seamlessly sweeps them back to their origin anchors kinetically, resolving visual clutter.
+
+6. Soft-Reset Progression Loops
+Issue: The original spec lacked a seamless way to clear the workspace while keeping the player immersed and retaining their UI discoveries.
+Resolution: Formatted `GameStateManager.cs` to implement a `ClearDesk()` utility. This purges active atoms and bond chains while safely preserving the central UI discovery library and base spawner layout.
