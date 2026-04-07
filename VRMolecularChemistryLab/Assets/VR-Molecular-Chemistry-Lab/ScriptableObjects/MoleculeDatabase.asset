@@ -20,7 +20,7 @@ MonoBehaviour:
     carbonCount: 0
     nitrogenCount: 0
     bondType: 0
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 8919548515869832784, guid: cb5176254231e7144b0e554b9133f3a3, type: 3}
     discoveryIcon: {fileID: 0}
     description: Essential solvent; bent geometry 104.5 degrees
   - moleculeName: Hydrogen Gas
@@ -30,7 +30,7 @@ MonoBehaviour:
     carbonCount: 0
     nitrogenCount: 0
     bondType: 0
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 1854914078014282764, guid: 27218cee98f727749afecb1cb03052c8, type: 3}
     discoveryIcon: {fileID: 0}
     description: Most abundant element; lightest diatomic gas
   - moleculeName: Oxygen Gas
@@ -40,7 +40,7 @@ MonoBehaviour:
     carbonCount: 0
     nitrogenCount: 0
     bondType: 1
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 8210363335377864542, guid: 4957178384da3f64f8d7c7d29dab64de, type: 3}
     discoveryIcon: {fileID: 0}
     description: Supports combustion and aerobic respiration
   - moleculeName: Nitrogen Gas
@@ -50,7 +50,7 @@ MonoBehaviour:
     carbonCount: 0
     nitrogenCount: 2
     bondType: 2
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 5890852929421706911, guid: d2f8e52b7485a894582bf62378738ca3, type: 3}
     discoveryIcon: {fileID: 0}
     description: 78% of atmosphere; very stable triple bond
   - moleculeName: Ammonia
@@ -60,7 +60,7 @@ MonoBehaviour:
     carbonCount: 0
     nitrogenCount: 1
     bondType: 0
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 6039303355444842487, guid: 500b8858d9f9963498e1a1979e241d98, type: 3}
     discoveryIcon: {fileID: 0}
     description: Pungent gas; key feedstock in fertiliser production
   - moleculeName: Carbon Dioxide
@@ -70,7 +70,7 @@ MonoBehaviour:
     carbonCount: 1
     nitrogenCount: 0
     bondType: 1
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 6833026530957847858, guid: 4dce2f2b0cf60da4597dd08a23575751, type: 3}
     discoveryIcon: {fileID: 0}
     description: Greenhouse gas; produced by combustion and respiration
   - moleculeName: Methane
@@ -80,7 +80,7 @@ MonoBehaviour:
     carbonCount: 1
     nitrogenCount: 0
     bondType: 0
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 1357841106245155756, guid: 1231a82a56975244e8dc908329c3e0dc, type: 3}
     discoveryIcon: {fileID: 0}
     description: Main component of natural gas; simplest alkane
   - moleculeName: Hydrogen Cyanide
@@ -90,7 +90,7 @@ MonoBehaviour:
     carbonCount: 1
     nitrogenCount: 1
     bondType: 2
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 3054864296337289979, guid: 501f2402fcf18fa45855f8c8acb24777, type: 3}
     discoveryIcon: {fileID: 0}
     description: Extremely toxic; used in polymer synthesis
   - moleculeName: Nitric Oxide
@@ -100,7 +100,7 @@ MonoBehaviour:
     carbonCount: 0
     nitrogenCount: 1
     bondType: 0
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 3379210600400896077, guid: 86ca27ec94825124ea01033e236ab34f, type: 3}
     discoveryIcon: {fileID: 0}
     description: Free radical; biological signalling molecule
   - moleculeName: Hydroxyl Radical
@@ -110,7 +110,7 @@ MonoBehaviour:
     carbonCount: 0
     nitrogenCount: 0
     bondType: 0
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 9106984967214934878, guid: 587cd161038931248a30981295bd0212, type: 3}
     discoveryIcon: {fileID: 0}
     description: Highly reactive radical; important in atmospheric chemistry
   - moleculeName: Carbon Monoxide
@@ -120,7 +120,7 @@ MonoBehaviour:
     carbonCount: 1
     nitrogenCount: 0
     bondType: 2
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 7686721663613196996, guid: 9966c9ba838ff3b46a6f143ee80d9ddf, type: 3}
     discoveryIcon: {fileID: 0}
     description: Odourless toxic gas; CO2 precursor in combustion
   - moleculeName: Diazene
@@ -130,7 +130,7 @@ MonoBehaviour:
     carbonCount: 0
     nitrogenCount: 2
     bondType: 1
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 4997696367511349160, guid: 6a3843cc442614c439c961308d91d5f2, type: 3}
     discoveryIcon: {fileID: 0}
     description: Unstable azo compound; used in organic synthesis
   - moleculeName: Hydrazine
@@ -140,7 +140,7 @@ MonoBehaviour:
     carbonCount: 0
     nitrogenCount: 2
     bondType: 0
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 8148937997152474143, guid: 70b1941079fd10d4eb4dabaabbbec6c9, type: 3}
     discoveryIcon: {fileID: 0}
     description: Rocket fuel component; corrosive liquid
   - moleculeName: Cyanogen
@@ -150,7 +150,7 @@ MonoBehaviour:
     carbonCount: 2
     nitrogenCount: 2
     bondType: 2
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 1660639210704946922, guid: 7c787edce4e88bf4a921f31f89fa67ad, type: 3}
     discoveryIcon: {fileID: 0}
     description: Toxic diatomic; burns with a peach-coloured flame
   - moleculeName: Formaldehyde
@@ -160,7 +160,7 @@ MonoBehaviour:
     carbonCount: 1
     nitrogenCount: 0
     bondType: 1
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 8190469515826753764, guid: 203aa243cf226cf44ae43b8f203a0c7e, type: 3}
     discoveryIcon: {fileID: 0}
     description: Simplest aldehyde; used in resins and disinfectants
   - moleculeName: Methanol
@@ -170,7 +170,7 @@ MonoBehaviour:
     carbonCount: 1
     nitrogenCount: 0
     bondType: 0
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 798220872036069046, guid: ab6636f80618b914c9338ea159dc24b1, type: 3}
     discoveryIcon: {fileID: 0}
     description: Simplest alcohol; used as fuel and solvent
   - moleculeName: Urea
@@ -180,7 +180,7 @@ MonoBehaviour:
     carbonCount: 1
     nitrogenCount: 2
     bondType: 0
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 2357659484053589115, guid: ae6948a6df10531458533e7404c7902b, type: 3}
     discoveryIcon: {fileID: 0}
     description: End product of nitrogen metabolism in mammals
   - moleculeName: Glycine
@@ -190,6 +190,6 @@ MonoBehaviour:
     carbonCount: 2
     nitrogenCount: 1
     bondType: 0
-    moleculePrefab: {fileID: 0}
+    moleculePrefab: {fileID: 989432282945025029, guid: 1ec3a34578271f34ba07f99c771b6269, type: 3}
     discoveryIcon: {fileID: 0}
     description: Simplest amino acid; building block of proteins

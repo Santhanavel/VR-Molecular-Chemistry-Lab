@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using VRMolecularLab.Data;
-
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 namespace VRMolecularLab.Core
 {
-    [RequireComponent(typeof(UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable))]
+    [RequireComponent(typeof(XRGrabInteractable))]
     public class AtomController : MonoBehaviour
     {
         [Header("Atom Properties")]
@@ -22,7 +22,7 @@ namespace VRMolecularLab.Core
         private GameObject _bondedMolecule;
         private MeshRenderer _renderer;
         private List<AtomController> _nearbyAtoms = new List<AtomController>();
-        private UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable _interactable;
+        private XRGrabInteractable _interactable;
 
         // Public Accessors
         public string ElementSymbol => atomData != null ? atomData.elementSymbol : string.Empty;
@@ -32,7 +32,7 @@ namespace VRMolecularLab.Core
         private void Awake()
         {
             _renderer = GetComponent<MeshRenderer>();
-            _interactable = GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable>();
+            _interactable = GetComponent<XRGrabInteractable>();
 
             if (_interactable != null)
             {
