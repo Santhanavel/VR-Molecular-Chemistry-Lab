@@ -111,6 +111,16 @@ namespace VRMolecularLab.UI
             }
         }
 
+        public void ClearLibrary()
+        {
+            _discovered.Clear();
+            foreach (Transform child in libraryGrid)
+            {
+                Destroy(child.gameObject);
+            }
+            HideInspector();
+        }
+
         // --- Inspector Logic ---
         public void ShowInspector(MoleculeInstance moleculeInstance)
         {

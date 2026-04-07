@@ -13,6 +13,7 @@ namespace VRMolecularLab.Core
         public AudioClip bondSuccessClip;
         public AudioClip bondFailClip;
         public AudioClip ambientClip;
+        public AudioClip atomPlacedClip;
 
         // An array of references to controllers in the scene for haptic feedback
         // Use XRBaseController (since Doc mentions SendHapticImpulse on XRBaseController)
@@ -92,6 +93,14 @@ namespace VRMolecularLab.Core
             }
             
             TriggerHaptics(0.3f, 0.05f);
+        }
+
+        public void PlayAtomPlaced()
+        {
+            if (atomPlacedClip != null)
+            {
+                _audioSource.PlayOneShot(atomPlacedClip);
+            }
         }
 
         private void TriggerHaptics(float amplitude, float duration)

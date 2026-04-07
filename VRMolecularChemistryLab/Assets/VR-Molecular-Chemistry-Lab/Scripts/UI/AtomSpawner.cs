@@ -1,27 +1,95 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using VRMolecularLab.Data;
+using VRMolecularLab.Core;
 
 namespace VRMolecularLab.UI
 {
     public class AtomSpawner : MonoBehaviour
     {
-        [Header("Configurations")]
-        public AtomToken H_Token;
-        public AtomToken O_Token;
-        public AtomToken C_Token;
-        public AtomToken N_Token;
+        public static AtomSpawner Instance { get; private set; }
+        public List<AtomToken> atomTokens;
+        public Transform[] spawnPoints;
 
-        // Where atoms will spawn relative to the player
-        public Transform primarySpawnPoint;
+        private Dictionary<AtomController, Vector3> _homeMap = new Dictionary<AtomController, Vector3>();
+        private List<GameObject> _spawnedAtoms = new List<GameObject>();
 
-        public void SpawnAtom(string elementSymbol)
+        private void Awake()
         {
-            // In a full implementation, you could load the prefab from a direct reference
-            // For this design, we will just simulate finding the prefab and instantiating it.
-            // Ideally, AtomToken would hold its own Prefab reference, but the docs list AtomToken
-            // with just 'atomMesh' and 'atomMaterial'. Therefore, you might have discrete prefabs 
-            // for H, O, C, N assigned in the inspector here.
-            Debug.Log($"[AtomSpawner] Spawning Atom: {elementSymbol}");
+            if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+            Instance = this;
+        }
+
+        public void StartSession()
+        {
+            if (atomTokens == null || atomTokens.Count == 0 || spawnPoints == null || spawnPoints.Length == 0) return;
+
+            for (int i = 0; i < spawnPoints.Length; i++)
+            {
+                AtomToken token = atomTokens[i % atomTokens.Count];
+                if (token.atomPrefab != null)
+                {
+                    var obj = Instantiate(token.atomPrefab, spawnPoints[i].position, Quaternion.identity);
+                    var ac = obj.GetComponent<AtomController>();
+                    var af = obj.GetComponent<AntigravityFloat>();
+                    if (af != null) af.SetHome(spawnPoints[i].position);
+                    if (ac != null) _homeMap[ac] = spawnPoints[i].position;
+                    _spawnedAtoms.Add(obj);
+                }
+            }
+        }
+
+        public Vector3 GetHomePosition(AtomController atom)
+        {
+            if (atom != null && _homeMap.TryGetValue(atom, out Vector3 hp)) return hp;
+            return Vector3.zero;
+        }
+
+        public void RespawnAtom(AtomToken token)
+        {
+            Vector3 homeTarget = Vector3.zero;
+            bool foundHome = false;
+
+            for (int i = 0; i < spawnPoints.Length; i++)
+            {
+                if (atomTokens[i % atomTokens.Count] == token)
+                {
+                    homeTarget = spawnPoints[i].position;
+                    foundHome = true;
+                    break;
+                }
+            }
+            if (!foundHome) return;
+
+            foreach (var kvp in _homeMap)
+                if (kvp.Key != null && kvp.Key.atomData == token && !kvp.Key.IsConsumed && !kvp.Key.IsPlaced && kvp.Value == homeTarget)
+                    return;
+
+            if (token.atomPrefab != null)
+            {
+                var obj = Instantiate(token.atomPrefab, homeTarget, Quaternion.identity);
+                var ac = obj.GetComponent<AtomController>();
+                var af = obj.GetComponent<AntigravityFloat>();
+                if (af != null) af.SetHome(homeTarget);
+                if (ac != null) _homeMap[ac] = homeTarget;
+                _spawnedAtoms.Add(obj);
+            }
+        }
+
+        public void ResetAll()
+        {
+            foreach (var obj in _spawnedAtoms)
+            {
+                if (obj != null)
+                {
+                    var xri = obj.GetComponent<XRGrabInteractable>();
+                    if (xri != null) xri.enabled = false;
+                    Destroy(obj);
+                }
+            }
+            _spawnedAtoms.Clear();
+            _homeMap.Clear();
         }
     }
 }

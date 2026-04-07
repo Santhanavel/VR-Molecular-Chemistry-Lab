@@ -28,6 +28,7 @@ namespace VRMolecularLab.Core
         public string ElementSymbol => atomData != null ? atomData.elementSymbol : string.Empty;
         public bool IsGrabbed => _isGrabbed;
         public bool IsConsumed => _bondedMolecule != null;
+        public bool IsPlaced { get; set; }
 
         private void Awake()
         {
@@ -68,13 +69,14 @@ namespace VRMolecularLab.Core
         // Left as public for potential external/event calls per doc
         public void OnGrabbed()
         {
-            if (IsConsumed) return; // Prevent grabbing if already consumed
+            if (IsConsumed || IsPlaced) return; // Prevent grabbing if already consumed or placed
             
             _isGrabbed = true;
             if (highlightMaterial != null && _renderer != null)
             {
                 _renderer.material = highlightMaterial;
             }
+            if (BondSocketManager.Instance != null) BondSocketManager.Instance.RegisterGrab();
         }
 
         public void OnReleased()
@@ -91,6 +93,7 @@ namespace VRMolecularLab.Core
             {
                 snapZoneIndicator.SetActive(false);
             }
+            if (BondSocketManager.Instance != null) BondSocketManager.Instance.UnregisterGrab();
         }
 
         private void FixedUpdate()
@@ -135,6 +138,7 @@ namespace VRMolecularLab.Core
         public void ResetAtom()
         {
             _bondedMolecule = null;
+            IsPlaced = false;
             
             if (_renderer != null) _renderer.enabled = true;
             

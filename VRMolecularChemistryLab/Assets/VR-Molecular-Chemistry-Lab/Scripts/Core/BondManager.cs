@@ -50,15 +50,45 @@ namespace VRMolecularLab.Core
             {
                 FormMolecule(molData, candidates);
             }
-            else
-            {
-                // Optional: Provide fail feedback (shake, buzzer)
-                // Note: since this happens rapidly in FixedUpdate, we rely on the cooldown
-                // to prevent continuous buzzing
-                OnBondFailed?.Invoke();
-            }
 
             _nextBondTime = Time.time + bondCooldown;
+        }
+
+        public (MoleculeData? result, bool isImpossible) EvaluatePlacedAtoms(List<AtomController> placedAtoms)
+        {
+            if (database == null) return (null, false);
+
+            int h = placedAtoms.Count(a => a.ElementSymbol == "H");
+            int o = placedAtoms.Count(a => a.ElementSymbol == "O");
+            int c = placedAtoms.Count(a => a.ElementSymbol == "C");
+            int n = placedAtoms.Count(a => a.ElementSymbol == "N");
+
+            // Complete match scenario
+            if (database.TryFind(h, o, c, n, out MoleculeData foundData))
+            {
+                OnMoleculeFormed?.Invoke(foundData);
+                return (foundData, false);
+            }
+
+            // Subset match scenario
+            bool isPossibleSubset = false;
+            foreach (var mol in database.molecules)
+            {
+                if (mol.hydrogenCount >= h && mol.oxygenCount >= o && 
+                    mol.carbonCount >= c && mol.nitrogenCount >= n)
+                {
+                    isPossibleSubset = true;
+                    break;
+                }
+            }
+
+            if (!isPossibleSubset)
+            {
+                OnBondFailed?.Invoke(); // Fire fail exclusively here on impossible placements
+                return (null, true);
+            }
+
+            return (null, false); // Partial sequence forming
         }
 
         private void FormMolecule(MoleculeData data, List<AtomController> atoms)

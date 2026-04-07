@@ -22,5 +22,8 @@ namespace VRMolecularLab.Data
         
         [Tooltip("Text label rendered on the atom")]
         public string labelText;
+        
+        [Tooltip("Prefab instantiated for this atom token")]
+        public GameObject atomPrefab;
     }
 }
