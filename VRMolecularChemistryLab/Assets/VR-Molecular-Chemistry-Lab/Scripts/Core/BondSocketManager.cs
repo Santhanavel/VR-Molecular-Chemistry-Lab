@@ -14,7 +14,7 @@ namespace VRMolecularLab.Core
         public float socketOffset = 0.15f;
         private List<BondSocket> _activeSockets = new List<BondSocket>();
         private List<AtomController> _placedAtoms = new List<AtomController>();
-        private const int MAX_SOCKETS = 8;
+        private const int MAX_SOCKETS = 24;
         
         private int _grabCount = 0;
         public bool IsSockedVisible => _grabCount > 0;

@@ -18,12 +18,14 @@ namespace VRMolecularLab.Core
         [Header("UI References")]
         public GameObject instructionPanel;
         public GameObject startButton;
+        public GameObject spawnPoint;
 
         private void Awake()
         {
             _state = GameState.Idle;
             if (instructionPanel != null) instructionPanel.SetActive(true);
             if (startButton != null) startButton.SetActive(false);
+            if (spawnPoint != null) spawnPoint.SetActive(false);
             StartCoroutine(WaitAndShowStartButton(2f));
         }
 
@@ -40,6 +42,8 @@ namespace VRMolecularLab.Core
             if (startButton != null) startButton.SetActive(false);
 
             if (atomSpawner != null) atomSpawner.StartSession();
+            if (spawnPoint != null) spawnPoint.SetActive(true);
+
             if (bondSocketManager != null) bondSocketManager.OpenFirstSocket();
             _state = GameState.Active;
         }
@@ -53,10 +57,21 @@ namespace VRMolecularLab.Core
             if (atomSpawner != null) atomSpawner.ResetAll();
             if (moleculeSpawnController != null) moleculeSpawnController.ClearCurrentMolecule();
             if (uiManager != null) uiManager.ClearLibrary();
-
+            if (spawnPoint != null) spawnPoint.SetActive(false);
             if (instructionPanel != null) instructionPanel.SetActive(true);
             if (startButton != null) startButton.SetActive(true);
             _state = GameState.Idle;
+        }
+
+        public void ClearDesk()
+        {
+            if (_state != GameState.Active) return;
+
+            if (moleculeSpawnController != null) moleculeSpawnController.ClearCurrentMolecule();
+            if (bondSocketManager != null) bondSocketManager.ResetAllSockets();
+            if (atomSpawner != null) atomSpawner.CleanDesk();
+            
+            if (bondSocketManager != null) bondSocketManager.OpenFirstSocket();
         }
     }
 }

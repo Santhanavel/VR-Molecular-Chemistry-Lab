@@ -91,5 +91,41 @@ namespace VRMolecularLab.UI
             _spawnedAtoms.Clear();
             _homeMap.Clear();
         }
+
+        public void CleanDesk()
+        {
+            var newMap = new Dictionary<AtomController, Vector3>();
+            for (int i = _spawnedAtoms.Count - 1; i >= 0; i--)
+            {
+                var obj = _spawnedAtoms[i];
+                if (obj == null) continue;
+
+                var ac = obj.GetComponent<AtomController>();
+                if (ac != null && !ac.IsPlaced && !ac.IsConsumed)
+                {
+                    if (_homeMap.TryGetValue(ac, out Vector3 home))
+                    {
+                        newMap[ac] = home;
+                    }
+                }
+                else if (ac != null)
+                {
+                    Destroy(obj);
+                    _spawnedAtoms.RemoveAt(i);
+                }
+            }
+            
+            _homeMap = newMap;
+            _spawnedAtoms.RemoveAll(x => x == null);
+
+            if (atomTokens != null && spawnPoints != null)
+            {
+                for (int i = 0; i < spawnPoints.Length; i++)
+                {
+                    AtomToken token = atomTokens[i % atomTokens.Count];
+                    RespawnAtom(token);
+                }
+            }
+        }
     }
 }
