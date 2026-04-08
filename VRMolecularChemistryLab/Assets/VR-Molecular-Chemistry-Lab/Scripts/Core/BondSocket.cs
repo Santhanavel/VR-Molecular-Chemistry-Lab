@@ -72,6 +72,7 @@ namespace VRMolecularLab.Core
             
             // Temporarily set IsPlaced to true so the Spawner knows it's consumed from the pool
             atom.IsPlaced = true;
+            atom.HasBeenSocketed = true;
 
             bool isAccepted = true;
             if (BondSocketManager.Instance != null) 
@@ -106,15 +107,13 @@ namespace VRMolecularLab.Core
         {
             occupant = atom;
             atom.IsPlaced = true;
+            atom.HasBeenSocketed = true;
             
             atom.transform.position = transform.position;
             atom.transform.rotation = Quaternion.identity;
             
             var rb = atom.GetComponent<Rigidbody>();
             if (rb != null) rb.isKinematic = true;
-
-            var xri = atom.GetComponent<XRGrabInteractable>();
-            if (xri != null) xri.enabled = false;
             
             var antiGravityCom = atom.GetComponent<AntigravityFloat>();
             if (antiGravityCom != null) antiGravityCom.enabled = false;

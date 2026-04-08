@@ -75,6 +75,15 @@ namespace VRMolecularLab.Core
             return true;
         }
 
+        public void RemoveAtom(AtomController atom)
+        {
+            if (_placedAtoms.Contains(atom))
+            {
+                _placedAtoms.Remove(atom);
+                ReorderPlacedAtoms();
+            }
+        }
+
         public void ResetAllSockets()
         {
             foreach (var s in _activeSockets) if (s != null && s.gameObject != null) Destroy(s.gameObject);
@@ -112,7 +121,18 @@ namespace VRMolecularLab.Core
             // Clear all socket bindings first
             foreach (var socket in _activeSockets)
             {
-                socket.occupant = null;
+                socket.ClearSocket();
+            }
+
+            // Cleanup extra empty sockets to always leave exactly ONE empty socket at the end
+            int desiredSocketCount = Mathf.Min(_placedAtoms.Count + 1, MAX_SOCKETS);
+            for (int i = _activeSockets.Count - 1; i >= desiredSocketCount; i--)
+            {
+                if (_activeSockets[i] != null && _activeSockets[i].gameObject != null)
+                {
+                    Destroy(_activeSockets[i].gameObject);
+                }
+                _activeSockets.RemoveAt(i);
             }
 
             // Alphabetical grouping (Sort places identical atoms adjacently)

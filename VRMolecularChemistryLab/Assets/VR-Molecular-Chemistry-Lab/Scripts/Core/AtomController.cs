@@ -29,6 +29,7 @@ namespace VRMolecularLab.Core
         public bool IsGrabbed => _isGrabbed;
         public bool IsConsumed => _bondedMolecule != null;
         public bool IsPlaced { get; set; }
+        public bool HasBeenSocketed { get; set; }
 
         private void Awake()
         {
@@ -69,7 +70,16 @@ namespace VRMolecularLab.Core
         // Left as public for potential external/event calls per doc
         public void OnGrabbed()
         {
-            if (IsConsumed || IsPlaced) return; // Prevent grabbing if already consumed or placed
+            if (IsConsumed) return; // Prevent grabbing if already consumed
+            
+            if (IsPlaced)
+            {
+                IsPlaced = false;
+                if (BondSocketManager.Instance != null)
+                {
+                    BondSocketManager.Instance.RemoveAtom(this);
+                }
+            }
             
             _isGrabbed = true;
             if (highlightMaterial != null && _renderer != null)
@@ -103,10 +113,17 @@ namespace VRMolecularLab.Core
             yield return new WaitForEndOfFrame();
             if (!IsPlaced && !IsConsumed)
             {
-                var antiG = GetComponent<AntigravityFloat>();
-                if (antiG != null && !antiG.IsReturning)
+                if (HasBeenSocketed)
                 {
-                    antiG.StartReturnHome(1.0f); // Fire normal 1s delayed return
+                    Destroy(gameObject);
+                }
+                else
+                {
+                    var antiG = GetComponent<AntigravityFloat>();
+                    if (antiG != null && !antiG.IsReturning)
+                    {
+                        antiG.StartReturnHome(1.0f); // Fire normal 1s delayed return
+                    }
                 }
             }
         }
@@ -154,6 +171,7 @@ namespace VRMolecularLab.Core
         {
             _bondedMolecule = null;
             IsPlaced = false;
+            HasBeenSocketed = false;
             
             if (_renderer != null) _renderer.enabled = true;
             
