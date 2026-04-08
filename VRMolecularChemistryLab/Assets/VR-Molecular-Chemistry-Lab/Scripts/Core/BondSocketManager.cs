@@ -80,6 +80,12 @@ namespace VRMolecularLab.Core
             if (_placedAtoms.Contains(atom))
             {
                 _placedAtoms.Remove(atom);
+                
+                if (MoleculeSpawnController.Instance != null)
+                {
+                    MoleculeSpawnController.Instance.ClearCurrentMolecule();
+                }
+
                 ReorderPlacedAtoms();
             }
         }

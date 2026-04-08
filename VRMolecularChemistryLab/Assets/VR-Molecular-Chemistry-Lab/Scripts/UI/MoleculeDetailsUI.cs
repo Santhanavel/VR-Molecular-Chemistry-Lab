@@ -11,6 +11,8 @@ namespace VRMolecularLab.UI
 {
     public class MoleculeDetailsUI : MonoBehaviour
     {
+        public static MoleculeDetailsUI Instance { get; private set; }
+
         [Header("UI References")]
         [Tooltip("The CanvasGroup to fade in and out")]
         [SerializeField] private CanvasGroup uiCanvasGroup;
@@ -23,52 +25,30 @@ namespace VRMolecularLab.UI
         [Header("Settings")]
         [SerializeField] private float fadeDuration = 0.3f;
 
-        private XRGrabInteractable _interactable;
-        private MoleculeInstance _moleculeInstance;
         private Coroutine _fadeCoroutine;
 
         private void Awake()
         {
-            _interactable = GetComponentInParent<XRGrabInteractable>();
-            _moleculeInstance = GetComponentInParent<MoleculeInstance>();
+            if (Instance != null && Instance != this)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            Instance = this;
             
             if (uiCanvasGroup != null)
             {
                 uiCanvasGroup.alpha = 0f;
                 uiCanvasGroup.interactable = false;
                 uiCanvasGroup.blocksRaycasts = false;
-                uiCanvasGroup.gameObject.SetActive(false);
             }
         }
 
-        private void Start()
+        public void ShowMolecule(MoleculeInstance moleculeInstance)
         {
-            InitializeUI();
-        }
-
-        private void OnEnable()
-        {
-            if (_interactable != null)
+            if (moleculeInstance != null)
             {
-                _interactable.selectEntered.AddListener(OnGrabbed);
-                _interactable.selectExited.AddListener(OnReleased);
-            }
-        }
-
-        private void OnDisable()
-        {
-            if (_interactable != null)
-            {
-                _interactable.selectEntered.RemoveListener(OnGrabbed);
-                _interactable.selectExited.RemoveListener(OnReleased);
-            }
-        }
-
-        private void InitializeUI()
-        {
-            if (_moleculeInstance != null)
-            {
-                MoleculeData data = _moleculeInstance.Data;
+                MoleculeData data = moleculeInstance.Data;
                 
                 if (nameText != null)
                 {
@@ -113,6 +93,7 @@ namespace VRMolecularLab.UI
                     }
                 }
             }
+            FadeUI(1f);
         }
 
         private string FormatFormula(string rawFormula)
@@ -133,16 +114,9 @@ namespace VRMolecularLab.UI
             return formatted;
         }
 
-        private void OnGrabbed(SelectEnterEventArgs args)
-        {
-            FadeUI(1f);
-        }
-
-        private void OnReleased(SelectExitEventArgs args)
+        public void HideMolecule()
         {
             FadeUI(0f);
-            // Note: The position and rotation reset (returning home) is already being handled 
-            // by the existing MoleculeInstance.cs ReturnHome() coroutine on select exit.
         }
 
         private void FadeUI(float targetAlpha)
@@ -162,11 +136,6 @@ namespace VRMolecularLab.UI
             float startAlpha = uiCanvasGroup.alpha;
             float elapsed = 0f;
 
-            if (targetAlpha > 0f)
-            {
-                uiCanvasGroup.gameObject.SetActive(true);
-            }
-
             while (elapsed < fadeDuration)
             {
                 elapsed += Time.deltaTime;
@@ -175,11 +144,6 @@ namespace VRMolecularLab.UI
             }
 
             uiCanvasGroup.alpha = targetAlpha;
-
-            if (targetAlpha == 0f)
-            {
-                uiCanvasGroup.gameObject.SetActive(false);
-            }
         }
     }
 }

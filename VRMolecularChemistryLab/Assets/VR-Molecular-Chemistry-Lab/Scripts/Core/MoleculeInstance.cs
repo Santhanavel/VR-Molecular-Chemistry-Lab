@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using VRMolecularLab.Data;
+using VRMolecularLab.UI;
 
 namespace VRMolecularLab.Core
 {
@@ -46,10 +47,18 @@ namespace VRMolecularLab.Core
                 StopCoroutine(_returnHomeCoroutine);
                 _returnHomeCoroutine = null;
             }
+            if (MoleculeDetailsUI.Instance != null)
+            {
+                MoleculeDetailsUI.Instance.ShowMolecule(this);
+            }
         }
 
         private void OnReleased(SelectExitEventArgs args)
         {
+            if (MoleculeDetailsUI.Instance != null)
+            {
+                MoleculeDetailsUI.Instance.HideMolecule();
+            }
             if (gameObject.activeInHierarchy)
             {
                 if (_returnHomeCoroutine != null) StopCoroutine(_returnHomeCoroutine);
